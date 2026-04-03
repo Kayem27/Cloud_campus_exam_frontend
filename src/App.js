@@ -1,25 +1,65 @@
-import logo from './logo.svg';
-import './App.css';
+// src/App.js
+import React from 'react';
+import { createBrowserRouter, RouterProvider, Outlet } from 'react-router-dom';
+import Navbar from './components/Navbar';
+import ProductList from './pages/ProductList';
+import Cart from './pages/Cart';
+import Order from './pages/Order';
+import Login from './pages/Login';
+import Register from './pages/Register';
+import Admin from './pages/Admin';
+import ProtectedRoute from './components/ProtectedRoute';
+import AdminRoute from './components/AdminRoute';
+import ShippingPayment from './pages/ShippingPayment';
 
-function App() {
-  return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
-  );
-}
+// Layout principal avec Navbar et Outlet
+const MainLayout = () => (
+  <>
+    <Navbar />
+    <main className="p-4">
+      <Outlet />
+    </main>
+  </>
+);
+
+// Définition des routes avec le MainLayout
+const router = createBrowserRouter([
+  {
+    path: '/',
+    element: <MainLayout />,
+    children: [
+      {
+        path: '',
+        element: <ProductList />,
+      },
+      {
+        path: 'login',
+        element: <Login />,
+      },
+      {
+        path: 'register',
+        element: <Register />,
+      },
+      {
+        path: 'shippig_payment',
+        element: <ShippingPayment />,
+      },
+      {
+        path: 'cart',
+        element: <Cart />,
+      },
+      {
+        path: 'order',
+        element: <ProtectedRoute><Order /></ProtectedRoute>,
+      },
+      {
+        path: 'admin',
+        element: <AdminRoute><Admin /></AdminRoute>,
+      },
+    ],
+  },
+]);
+
+const App = () => <RouterProvider router={router} />;
 
 export default App;
