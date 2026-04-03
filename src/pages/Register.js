@@ -1,7 +1,7 @@
-// src/pages/Register.js
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import axios from 'axios';
+import { registerUser } from '../services/api';
+import { toast } from 'react-toastify';
 
 const Register = () => {
   const [formData, setFormData] = useState({
@@ -9,7 +9,6 @@ const Register = () => {
     email: '',
     password: '',
   });
-  const [error, setError] = useState('');
   const navigate = useNavigate();
 
   const handleChange = (e) => {
@@ -22,21 +21,20 @@ const Register = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      await axios.post(`${process.env.REACT_APP_API_URL || 'http://localhost:5000/api'}/auth/register`, formData);
-      alert('Inscription réussie ! Vous pouvez maintenant vous connecter.');
+      await registerUser(formData);
+      toast.success('Inscription réussie ! Vous pouvez maintenant vous connecter.');
       navigate('/login');
     } catch (err) {
-      //console.error('Erreur lors de l\'inscription', err);
       if (err.response) {
-        // Erreur renvoyée par le serveur
-        const { message } = err.response.data;
-        alert(message); // Affiche un message à l'utilisateur (vous pouvez remplacer par un toast)
+        const { message, errors } = err.response.data;
+        if (errors) {
+          errors.forEach((msg) => toast.error(msg));
+        } else {
+          toast.error(message || 'Erreur lors de l\'inscription');
+        }
       } else {
-        // Erreur réseau ou autre
-        console.error("Erreur réseau ou serveur", err);
-        alert("Une erreur est survenue. Veuillez réessayer.");
+        toast.error('Une erreur est survenue. Veuillez réessayer.');
       }
-      //setError('Une erreur est survenue lors de la création du compte.');
     }
   };
 
@@ -44,7 +42,6 @@ const Register = () => {
     <div className="flex justify-center items-center h-screen">
       <form onSubmit={handleSubmit} className="bg-white p-6 rounded shadow-md w-80">
         <h2 className="text-2xl font-bold mb-4 text-center">Inscription</h2>
-        {error && <p className="text-red-500 mb-4">{error}</p>}
         <input
           type="text"
           name="username"

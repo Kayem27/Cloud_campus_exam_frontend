@@ -1,15 +1,25 @@
-// src/services/api.js
 import axios from 'axios';
 
 const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000/api';
 
-export const fetchProducts = () => axios.get(`${API_BASE_URL}/products`);
+// Permet d'envoyer/recevoir les cookies HTTPOnly
+const api = axios.create({
+  baseURL: API_BASE_URL,
+  withCredentials: true,
+});
+
+export const fetchProducts = () => api.get('/products');
 
 export const createOrder = (orderData) => {
-    const token = localStorage.getItem('token');
-    return axios.post(`${API_BASE_URL}/orders`, orderData, {
-        headers: {
-            Authorization: `Bearer ${token}`,
-        },
-    });
+    return api.post('/orders', orderData);
 };
+
+export const loginUser = (credentials) => api.post('/auth/login', credentials);
+
+export const registerUser = (formData) => api.post('/auth/register', formData);
+
+export const logoutUser = () => api.post('/auth/logout');
+
+export const getMe = () => api.get('/auth/me');
+
+export default api;

@@ -2,13 +2,13 @@ import React from "react";
 import { useNavigate } from "react-router-dom";
 import { useCart } from "../context/CartContext";
 import { createOrder } from "../services/api";
+import { toast } from "react-toastify";
 
 const Order = () => {
   const navigate = useNavigate();
-  //recuperer le context panier
   const { cart, shippingAddress, paymentMethod, shippingMethod, dispatch } =
-    useCart(); // Récupérer le contenu du panier à partir du contexte
-  // Naviguer vers la page de commande
+    useCart();
+
   const handleShippingPage = () => {
     navigate("/shippig_payment");
   };
@@ -16,7 +16,6 @@ const Order = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    // Vérifier les champs manquants
     const missingFields = [];
     if (cart.length === 0) missingFields.push("panier");
     if (!shippingAddress) missingFields.push("adresse de livraison");
@@ -24,31 +23,21 @@ const Order = () => {
     if (!paymentMethod) missingFields.push("méthode de paiement");
 
     if (missingFields.length > 0) {
-      alert(
-        `Informations manquantes pour la commande :\n${missingFields
-          .map((field) => `• ${field}`)
-          .join("\n")}`
-      );
+      toast.warn(`Informations manquantes : ${missingFields.join(", ")}`);
       return;
     }
 
-    // Vérifier le détail de l'adresse de livraison
     const requiredAddressFields = ["street", "postalCode", "city", "country"];
     const missingAddressDetails = requiredAddressFields.filter(
       (field) => !shippingAddress[field]
     );
 
     if (missingAddressDetails.length > 0) {
-      alert(
-        `Adresse de livraison incomplète :\n${missingAddressDetails
-          .map((field) => `• ${field}`)
-          .join("\n")}`
-      );
+      toast.warn(`Adresse incomplète : ${missingAddressDetails.join(", ")}`);
       return;
     }
 
     try {
-      // Créer la commande seulement si toutes les vérifications passent
       const orderDetails = {
         items: cart.map((item) => ({
           productId: item.id,
@@ -64,15 +53,18 @@ const Order = () => {
       const response = await createOrder(orderDetails);
 
       if (response.error) {
-        alert(`Erreur : ${response.message || "Échec de la commande"}`);
+        toast.error(response.message || "Échec de la commande");
         return;
       }
 
       dispatch({ type: "CLEAR_CART" });
-      alert("Commande confirmée avec succès !");
+      toast.success("Commande confirmée avec succès !");
     } catch (error) {
-      console.error("Erreur lors de la commande", error);
-      alert("Une erreur technique est survenue. Veuillez réessayer.");
+      if (error.response?.data?.errors) {
+        error.response.data.errors.forEach((msg) => toast.error(msg));
+      } else {
+        toast.error("Une erreur technique est survenue. Veuillez réessayer.");
+      }
     }
   };
 
@@ -119,7 +111,6 @@ const Order = () => {
             €
           </p>
 
-          {/* Nouvelles informations ajoutées ici */}
           <div className="mt-6 grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <h3 className="text-lg font-semibold mb-2">
@@ -135,14 +126,12 @@ const Order = () => {
                     <p>{shippingAddress.country}</p>
                   </div>
                   <div>
-                    <div>
-                      <button
-                        onClick={handleShippingPage}
-                        className="bg-blue-500 text-white px-4 py-2 rounded"
-                      >
-                        Modifier
-                      </button>
-                    </div>
+                    <button
+                      onClick={handleShippingPage}
+                      className="bg-blue-500 text-white px-4 py-2 rounded"
+                    >
+                      Modifier
+                    </button>
                   </div>
                 </>
               ) : (
@@ -171,15 +160,13 @@ const Order = () => {
                 </div>
               </div>
               <div>
-                    <div>
-                      <button
-                        onClick={handleShippingPage}
-                        className="bg-blue-500 text-white px-4 py-2 rounded"
-                      >
-                        Modifier
-                      </button>
-                    </div>
-                  </div>
+                <button
+                  onClick={handleShippingPage}
+                  className="bg-blue-500 text-white px-4 py-2 rounded"
+                >
+                  Modifier
+                </button>
+              </div>
             </div>
           </div>
 

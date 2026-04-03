@@ -1,7 +1,7 @@
-// src/pages/Login.js
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import axios from "axios";
+import { loginUser } from "../services/api";
+import { toast } from "react-toastify";
 
 const Login = () => {
   const [credentials, setCredentials] = useState({
@@ -13,28 +13,22 @@ const Login = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const response = await axios.post(
-        `${process.env.REACT_APP_API_URL || 'http://localhost:5000/api'}/auth/login`,
-        credentials
-      );
-      const { token, role, username } = response.data;
+      const response = await loginUser(credentials);
+      const { role, username } = response.data;
 
-      // Stockage du token et rôle dans le localStorage
-      localStorage.setItem("token", token);
+      // Le token est maintenant dans un cookie HTTPOnly (non accessible en JS)
+      // On stocke seulement les infos non-sensibles pour l'affichage
       localStorage.setItem("username", username);
       localStorage.setItem("role", role);
+      localStorage.setItem("isAuthenticated", "true");
 
-      navigate("/"); // Redirige vers la page d'accueil après la connexion
+      toast.success(`Bienvenue, ${username} !`);
+      navigate("/");
     } catch (error) {
-      // Gestion des erreurs
       if (error.response) {
-        // Erreur renvoyée par le serveur
-        const { message } = error.response.data;
-        alert(message); // Affiche un message à l'utilisateur (vous pouvez remplacer par un toast)
+        toast.error(error.response.data.message || "Erreur de connexion");
       } else {
-        // Erreur réseau ou autre
-        console.error("Erreur réseau ou serveur", error);
-        alert("Une erreur est survenue. Veuillez réessayer.");
+        toast.error("Une erreur est survenue. Veuillez réessayer.");
       }
     }
   };

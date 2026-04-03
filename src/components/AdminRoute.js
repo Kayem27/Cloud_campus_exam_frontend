@@ -1,12 +1,11 @@
-// src/components/AdminRoute.js
 import React from 'react';
 import { Navigate } from 'react-router-dom';
 
 const AdminRoute = ({ children }) => {
-  const token = localStorage.getItem('token');
+  const isAuthenticated = localStorage.getItem('isAuthenticated') === 'true';
   const role = localStorage.getItem('role');
 
-  if (!token || role !== 'admin') {
+  if (!isAuthenticated || role !== 'admin') {
     return <Navigate to="/" replace />;
   }
 
